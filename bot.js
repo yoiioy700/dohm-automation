@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer-core';
 import { CONFIG, loadAccounts } from './config.js';
-import { log, sleep, randomInt, randomDelay, shuffleArray } from './utils.js';
+import { log, sleep, randomInt, randomDelay, shuffleArray, C } from './utils.js';
 import { connectOrRestoreWallet } from './wallet.js';
 import {
   checkFaucets,
@@ -19,15 +19,18 @@ export async function runDohmAutomation(customTxCount = null) {
   }
 
   log.banner();
-  log.info(`🎯 Target URL    : \x1b[36m${CONFIG.appUrl}\x1b[0m`);
-  log.info(`👥 Total Akun    : \x1b[33m${accounts.length} Akun\x1b[0m`);
-  log.info(`🖥️ Mode Headless : \x1b[35m${CONFIG.headless}\x1b[0m`);
-  log.info(`🌐 OS Platform   : \x1b[32m${process.platform}\x1b[0m`);
+  console.log(`  ${C.dim}├─${C.reset} 🎯 ${C.bold}Target URL    :${C.reset} ${C.brightCyan}${CONFIG.appUrl}${C.reset}`);
+  console.log(`  ${C.dim}├─${C.reset} 👥 ${C.bold}Total Akun    :${C.reset} ${C.brightYellow}${accounts.length} Akun${C.reset}`);
+  console.log(`  ${C.dim}├─${C.reset} 🖥️  ${C.bold}Headless Mode :${C.reset} ${C.brightMagenta}${CONFIG.headless}${C.reset}`);
+  console.log(`  ${C.dim}└─${C.reset} 🌐 ${C.bold}OS Platform   :${C.reset} ${C.brightGreen}${process.platform}${C.reset}`);
+
+  // Tampilkan tabel akun
+  log.accountsTable(accounts);
+
+  const cycleResults = [];
 
   for (let accIdx = 0; accIdx < accounts.length; accIdx++) {
     const account = accounts[accIdx];
-    log.accountHeader(accIdx + 1, accounts.length, account.name);
-
     let browser;
     let successCount = 0;
     let totalActions = 0;
@@ -55,22 +58,25 @@ export async function runDohmAutomation(customTxCount = null) {
 
       // 1. Restore / Connect Wallet
       const walletRes = await connectOrRestoreWallet(page, account);
+      log.accountCard(accIdx + 1, accounts.length, account.name, walletRes.address);
+
       if (!walletRes.success) {
         log.error(`Gagal menghubungkan wallet "${account.name}". Lanjut ke akun berikutnya.`);
+        cycleResults.push({ name: account.name, points: 'Error', successTx: 0, totalTx: 0 });
         await browser.close();
         continue;
       }
 
       // 2. Faucet Check
       await checkFaucets(page);
-      await randomDelay(CONFIG.minDelaySec, CONFIG.maxDelaySec, 'Jeda Faucet');
+      await randomDelay(CONFIG.minDelaySec, CONFIG.maxDelaySec, 'Jeda Verifikasi Faucet');
 
       // 3. Rencanakan Transaksi Acak
       totalActions = customTxCount || randomInt(CONFIG.minTxPerRun, CONFIG.maxTxPerRun);
-      log.random(`Menyiapkan \x1b[33m${totalActions} transaksi acak\x1b[0m untuk siklus ini.`);
+      log.random(`Menyiapkan ${C.brightYellow}${totalActions} transaksi acak${C.reset} untuk "${account.name}".`);
 
       const actionPool = [
-        { name: 'Swap frBTC -> DΦHM', run: executeRandomSwap },
+        { name: 'Swap frBTC ➜ DΦHM', run: executeRandomSwap },
         { name: 'Bond frBTC (Mint DΦHM)', run: executeRandomBond },
         { name: 'Stake DΦHM', run: executeRandomStake },
         { name: 'Bond frBTC (Mint DΦHM)', run: executeRandomBond },
@@ -85,11 +91,11 @@ export async function runDohmAutomation(customTxCount = null) {
       }
       const randomizedPlan = shuffleArray(selectedActions);
 
-      console.log(`\n \x1b[36m📋 Pipeline Transaksi Terencana:\x1b[0m`);
+      console.log(`\n  ${C.brightCyan}📋 Rencana Eksekusi Pipeline:${C.reset}`);
       randomizedPlan.forEach((a, i) => {
         const isLast = i === randomizedPlan.length - 1;
         const prefix = isLast ? '  └─' : '  ├─';
-        console.log(`  \x1b[90m${prefix}\x1b[0m [${i + 1}] \x1b[37m${a.name}\x1b[0m`);
+        console.log(`    ${C.dim}${prefix}${C.reset} ${C.dim}[#${i + 1}]${C.reset} ${C.brightWhite}${a.name}${C.reset}`);
       });
 
       // 4. Eksekusi setiap transaksi
@@ -99,7 +105,7 @@ export async function runDohmAutomation(customTxCount = null) {
         if (success) successCount++;
 
         if (i < randomizedPlan.length - 1) {
-          await randomDelay(CONFIG.minDelaySec, CONFIG.maxDelaySec, 'Jeda antar aksi');
+          await randomDelay(CONFIG.minDelaySec, CONFIG.maxDelaySec, 'Jeda Antar Transaksi');
         }
       }
 
@@ -107,10 +113,15 @@ export async function runDohmAutomation(customTxCount = null) {
       await sleep(2000);
       points = await checkLeaderboardAndStreak(page);
 
-      // 6. Tampilkan Ringkasan Akun
-      log.summaryCard(account.name, points, successCount, totalActions);
+      cycleResults.push({
+        name: account.name,
+        points: points || '0 pts',
+        successTx: successCount,
+        totalTx: totalActions,
+      });
     } catch (err) {
       log.error(`Terjadi error pada "${account.name}": ${err.message}`);
+      cycleResults.push({ name: account.name, points: 'Error', successTx: successCount, totalTx: totalActions });
     } finally {
       if (browser) {
         await sleep(1500);
@@ -118,13 +129,15 @@ export async function runDohmAutomation(customTxCount = null) {
       }
     }
 
-    // Jeda antar akun
+    // Jeda antar akun jika masih ada akun berikutnya
     if (accIdx < accounts.length - 1) {
       console.log('');
-      await randomDelay(CONFIG.accountDelayMin, CONFIG.accountDelayMax, 'Jeda antar akun');
+      await randomDelay(CONFIG.accountDelayMin, CONFIG.accountDelayMax, 'Jeda Pergantian Akun');
     }
   }
 
-  console.log(`\n\x1b[32m✨ Semua akun (${accounts.length} Akun) telah selesai diproses!\x1b[0m\n`);
+  // Tampilkan tabel hasil akhir seluruh akun
+  log.cycleSummaryTable(cycleResults);
+  console.log(`\n  ${C.brightGreen}✨ Semua akun (${accounts.length} Akun) telah selesai diproses dalam siklus ini!${C.reset}\n`);
   return true;
 }

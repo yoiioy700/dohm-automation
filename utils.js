@@ -1,6 +1,6 @@
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const C = {
+export const C = {
   reset: '\x1b[0m',
   bold: '\x1b[1m',
   dim: '\x1b[2m',
@@ -27,9 +27,10 @@ const C = {
   brightWhite: '\x1b[97m',
 
   // Backgrounds
-  bgCyan: '\x1b[46m',
+  bgDark: '\x1b[40m',
   bgBlue: '\x1b[44m',
   bgMagenta: '\x1b[45m',
+  bgCyan: '\x1b[46m',
 };
 
 function getTime() {
@@ -37,65 +38,82 @@ function getTime() {
 }
 
 export const log = {
-  info: (msg) => {
-    console.log(` ${C.dim}${getTime()}${C.reset} ${C.cyan}ℹ INFO${C.reset}   ${msg}`);
-  },
-  success: (msg) => {
-    console.log(` ${C.dim}${getTime()}${C.reset} ${C.brightGreen}✔ OK${C.reset}     ${msg}`);
-  },
-  warn: (msg) => {
-    console.log(` ${C.dim}${getTime()}${C.reset} ${C.brightYellow}⚠ WARN${C.reset}   ${msg}`);
-  },
-  error: (msg) => {
-    console.log(` ${C.dim}${getTime()}${C.reset} ${C.brightRed}✖ FAIL${C.reset}   ${msg}`);
-  },
-  random: (msg) => {
-    console.log(` ${C.dim}${getTime()}${C.reset} ${C.magenta}🎲 RANDOM${C.reset} ${msg}`);
-  },
-  faucet: (msg) => {
-    console.log(` ${C.dim}${getTime()}${C.reset} ${C.blue}🚰 FAUCET${C.reset} ${msg}`);
-  },
-  tx: (msg) => {
-    console.log(` ${C.dim}${getTime()}${C.reset} ${C.brightCyan}⚡ TX${C.reset}     ${msg}`);
-  },
+  info: (msg) => console.log(`  ${C.dim}${getTime()}${C.reset}  ${C.brightCyan}ℹ INFO${C.reset}    ${msg}`),
+  success: (msg) => console.log(`  ${C.dim}${getTime()}${C.reset}  ${C.brightGreen}✔ SUCCESS${C.reset} ${msg}`),
+  warn: (msg) => console.log(`  ${C.dim}${getTime()}${C.reset}  ${C.brightYellow}⚠ WARNING${C.reset} ${msg}`),
+  error: (msg) => console.log(`  ${C.dim}${getTime()}${C.reset}  ${C.brightRed}✖ ERROR${C.reset}   ${msg}`),
+  faucet: (msg) => console.log(`  ${C.dim}${getTime()}${C.reset}  ${C.brightBlue}🚰 FAUCET${C.reset}  ${msg}`),
+  random: (msg) => console.log(`  ${C.dim}${getTime()}${C.reset}  ${C.brightMagenta}🎲 PLAN${C.reset}    ${msg}`),
 
   banner: () => {
+    console.clear();
     console.log(`
-${C.brightCyan}╔══════════════════════════════════════════════════════════════════════╗
-║${C.brightWhite}${C.bold}              ✨ DOHM FINANCE TESTNET AUTO-BOT v2.0                  ${C.reset}${C.brightCyan}║
-║${C.dim}     ⚡ Multi-Account • Randomized TXs • Human Delay • Streak Keeper   ${C.reset}${C.brightCyan}║
-╚══════════════════════════════════════════════════════════════════════╝${C.reset}`);
+${C.brightCyan}  ██████╗  ██████╗ ██╗  ██╗███╗   ███╗    ${C.brightMagenta}███████╗██╗███╗   ██╗ █████╗ ███╗   ██╗ ██████╗███████╗
+${C.brightCyan}  ██╔══██╗██╔═══██╗██║  ██║████╗ ████║    ${C.brightMagenta}██╔════╝██║████╗  ██║██╔══██╗████╗  ██║██╔════╝██╔════╝
+${C.brightCyan}  ██║  ██║██║   ██║███████║██╔████╔██║    ${C.brightMagenta}█████╗  ██║██╔██╗ ██║███████║██╔██╗ ██║██║     █████╗  
+${C.brightCyan}  ██║  ██║██║   ██║██╔══██║██║╚██╔╝██║    ${C.brightMagenta}██╔══╝  ██║██║╚██╗██║██╔══██║██║╚██╗██║██║     ██╔══╝  
+${C.brightCyan}  ██████╔╝╚██████╔╝██║  ██║██║ ╚═╝ ██║    ${C.brightMagenta}██║     ██║██║ ╚████║██║  ██║██║ ╚████║╚██████╗███████╗
+${C.brightCyan}  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝    ${C.brightMagenta}╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚══════╝${C.reset}
+${C.dim}  ──────────────────────────────────────────────────────────────────────────────────────────${C.reset}
+${C.brightWhite}   ⚡ Bitcoin Reserve Protocol • Multi-Account • Randomized TXs • Daily Streak Bot v2.5${C.reset}
+${C.dim}  ──────────────────────────────────────────────────────────────────────────────────────────${C.reset}`);
   },
 
-  accountHeader: (current, total, name, address = null) => {
-    console.log(`\n${C.brightCyan}╭──────────────────────────────────────────────────────────────────────╮${C.reset}`);
-    console.log(`${C.brightCyan}│${C.reset} ${C.bold}👤 AKUN [${current}/${total}]:${C.reset} ${C.brightYellow}${name}${C.reset}`.padEnd(79) + `${C.brightCyan}│${C.reset}`);
+  accountsTable: (accounts) => {
+    console.log(`\n  ${C.bold}👥 DAFTAR AKUN TERKONFIGURASI (${accounts.length} Akun):${C.reset}`);
+    console.log(`  ${C.dim}┌─────┬──────────────────────────┬─────────────────────────────────────────────────┐${C.reset}`);
+    console.log(`  ${C.dim}│${C.reset} ${C.bold}No  ${C.reset}${C.dim}│${C.reset} ${C.bold}Nama Akun                ${C.reset}${C.dim}│${C.reset} ${C.bold}Seed Phrase Preview                             ${C.reset}${C.dim}│${C.reset}`);
+    console.log(`  ${C.dim}├─────┼──────────────────────────┼─────────────────────────────────────────────────┤${C.reset}`);
+    accounts.forEach((acc, i) => {
+      const no = String(i + 1).padEnd(3);
+      const name = (acc.name || `Akun ${i + 1}`).padEnd(24).slice(0, 24);
+      const preview = (acc.seedPhrase ? acc.seedPhrase.slice(0, 43) + '...' : 'N/A').padEnd(47);
+      console.log(`  ${C.dim}│${C.reset} ${C.brightYellow}${no}${C.reset} ${C.dim}│${C.reset} ${C.brightCyan}${name}${C.reset} ${C.dim}│${C.reset} ${C.dim}${preview}${C.reset} ${C.dim}│${C.reset}`);
+    });
+    console.log(`  ${C.dim}└─────┴──────────────────────────┴─────────────────────────────────────────────────┘${C.reset}`);
+  },
+
+  accountCard: (current, total, name, address = null) => {
+    console.log(`\n  ${C.brightCyan}╔════════════════════════════════════════════════════════════════════════════════════════╗${C.reset}`);
+    console.log(`  ${C.brightCyan}║${C.reset} ${C.bold}👤 AKUN AKTIF [${current}/${total}]:${C.reset} ${C.brightYellow}${C.bold}${name.padEnd(61)}${C.reset} ${C.brightCyan}║${C.reset}`);
     if (address) {
-      console.log(`${C.brightCyan}│${C.reset} ${C.dim}🔑 Address :${C.reset} ${C.green}${address}${C.reset}`.padEnd(79) + `${C.brightCyan}│${C.reset}`);
+      console.log(`  ${C.brightCyan}║${C.reset} ${C.dim}🔑 Address     :${C.reset} ${C.brightGreen}${address.padEnd(66)}${C.reset} ${C.brightCyan}║${C.reset}`);
     }
-    console.log(`${C.brightCyan}╰──────────────────────────────────────────────────────────────────────╯${C.reset}`);
+    console.log(`  ${C.brightCyan}╚════════════════════════════════════════════════════════════════════════════════════════╝${C.reset}`);
   },
 
   stepBox: (stepNum, totalSteps, title, detail = '') => {
-    console.log(`\n${C.brightMagenta}┌─ [Aksi ${stepNum}/${totalSteps}] ${C.bold}${title}${C.reset}`);
+    console.log(`\n  ${C.brightMagenta}╭─── ⚡ [Aksi ${stepNum}/${totalSteps}] ${C.bold}${C.brightWhite}${title}${C.reset}`);
     if (detail) {
-      console.log(`${C.brightMagenta}│${C.reset}  ${C.dim}├─ Detail  :${C.reset} ${detail}`);
+      console.log(`  ${C.brightMagenta}│${C.reset}   ${C.dim}├─ Nominal  :${C.reset} ${C.brightYellow}${detail}${C.reset}`);
     }
   },
 
   stepEnd: (success, message) => {
-    const icon = success ? `${C.green}✔ BERHASIL${C.reset}` : `${C.yellow}⚠ DILEWATI${C.reset}`;
-    console.log(`${C.brightMagenta}│${C.reset}  ${C.dim}└─ Status  :${C.reset} ${icon} ${C.dim}(${message})${C.reset}`);
-    console.log(`${C.brightMagenta}└─────────────────────────────────────────────────────────────────────${C.reset}`);
+    const badge = success
+      ? `${C.brightGreen}✔ SUKSES (+1 Poin)${C.reset}`
+      : `${C.brightYellow}⚠ DILEWATI${C.reset}`;
+    console.log(`  ${C.brightMagenta}│${C.reset}   ${C.dim}└─ Status   :${C.reset} ${badge} ${C.dim}— ${message}${C.reset}`);
+    console.log(`  ${C.brightMagenta}╰────────────────────────────────────────────────────────────────────────────────────────${C.reset}`);
   },
 
-  summaryCard: (name, points, successTx, totalTx) => {
-    console.log(`\n${C.brightGreen}╭────────────────────── 📊 Ringkasan Akun ─────────────────────────────╮${C.reset}`);
-    console.log(`${C.brightGreen}│${C.reset}  👤 Nama Akun       : ${C.bold}${name}${C.reset}`.padEnd(80) + `${C.brightGreen}│${C.reset}`);
-    console.log(`${C.brightGreen}│${C.reset}  🏆 Poin Terdata    : ${C.brightYellow}${points || '0 Pts'}${C.reset}`.padEnd(80) + `${C.brightGreen}│${C.reset}`);
-    console.log(`${C.brightGreen}│${C.reset}  ⚡ Transaksi Sukses: ${C.cyan}${successTx} / ${totalTx} Aksi${C.reset}`.padEnd(80) + `${C.brightGreen}│${C.reset}`);
-    console.log(`${C.brightGreen}│${C.reset}  ⏱️ Waktu Selesai   : ${C.dim}${getTime()}${C.reset}`.padEnd(80) + `${C.brightGreen}│${C.reset}`);
-    console.log(`${C.brightGreen}╰──────────────────────────────────────────────────────────────────────╯${C.reset}`);
+  cycleSummaryTable: (results) => {
+    console.log(`\n  ${C.brightGreen}╔════════════════════════════════════════════════════════════════════════════════════════╗${C.reset}`);
+    console.log(`  ${C.brightGreen}║${C.reset}                          ${C.bold}📊 RINGKASAN SIKLUS TRANSAKSI${C.reset}                                  ${C.brightGreen}║${C.reset}`);
+    console.log(`  ${C.brightGreen}╠═════╦══════════════════════════╦═══════════════╦══════════════════╦════════════════════╣${C.reset}`);
+    console.log(`  ${C.brightGreen}║${C.reset} ${C.bold}No  ${C.reset}${C.brightGreen}║${C.reset} ${C.bold}Nama Akun                ${C.reset}${C.brightGreen}║${C.reset} ${C.bold}Poin Akun     ${C.reset}${C.brightGreen}║${C.reset} ${C.bold}Transaksi Sukses ${C.reset}${C.brightGreen}║${C.reset} ${C.bold}Status             ${C.reset}${C.brightGreen}║${C.reset}`);
+    console.log(`  ${C.brightGreen}╠═════╬══════════════════════════╬═══════════════╬══════════════════╬════════════════════╣${C.reset}`);
+
+    results.forEach((r, i) => {
+      const no = String(i + 1).padEnd(3);
+      const name = (r.name || `Akun ${i + 1}`).padEnd(24).slice(0, 24);
+      const pts = (r.points || '0 pts').padEnd(13);
+      const tx = `${r.successTx}/${r.totalTx} Sukses`.padEnd(16);
+      const status = r.successTx > 0 ? `${C.brightGreen}Active 🌟${C.reset} ` : `${C.brightYellow}Waiting ⏳${C.reset}`;
+      console.log(`  ${C.brightGreen}║${C.reset} ${no} ${C.brightGreen}║${C.reset} ${C.brightWhite}${name}${C.reset} ${C.brightGreen}║${C.reset} ${C.brightYellow}${pts}${C.reset} ${C.brightGreen}║${C.reset} ${C.cyan}${tx}${C.reset} ${C.brightGreen}║${C.reset} ${status}          ${C.brightGreen}║${C.reset}`);
+    });
+
+    console.log(`  ${C.brightGreen}╚═════╩══════════════════════════╩═══════════════╩══════════════════╩════════════════════╝${C.reset}`);
   },
 };
 
@@ -117,11 +135,34 @@ export function shuffleArray(array) {
   return copy;
 }
 
-export async function randomDelay(minSec = 5, maxSec = 15, label = 'Jeda alami') {
+export async function animatedDelay(seconds, label = 'Jeda Waktu') {
+  const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  let frameIdx = 0;
+  const start = Date.now();
+  const totalMs = seconds * 1000;
+
+  while (Date.now() - start < totalMs) {
+    const elapsed = Date.now() - start;
+    const remaining = Math.max(0, Math.ceil((totalMs - elapsed) / 1000));
+    const percent = Math.min(100, Math.floor((elapsed / totalMs) * 100));
+    const barWidth = 16;
+    const filled = Math.floor((percent / 100) * barWidth);
+    const bar = '█'.repeat(filled) + '░'.repeat(barWidth - filled);
+
+    process.stdout.write(
+      `\r  ${C.dim}${getTime()}${C.reset}  ${C.brightMagenta}${frames[frameIdx]}${C.reset} ${label}: [${C.brightCyan}${bar}${C.reset}] ${C.brightYellow}${remaining}s${C.reset} (${percent}%) `
+    );
+    frameIdx = (frameIdx + 1) % frames.length;
+    await sleep(100);
+  }
+  process.stdout.write(
+    `\r  ${C.dim}${getTime()}${C.reset}  ${C.brightGreen}✔${C.reset} ${label}: [${C.brightGreen}${'█'.repeat(16)}${C.reset}] ${C.brightGreen}Selesai!${C.reset}                     \n`
+  );
+}
+
+export async function randomDelay(minSec = 5, maxSec = 15, label = 'Jeda Alami') {
   const waitTime = randomInt(minSec, maxSec);
-  process.stdout.write(` ${C.dim}${getTime()}${C.reset} ${C.magenta}⏳ ${label}:${C.reset} Menunggu ${waitTime} detik... `);
-  await sleep(waitTime * 1000);
-  process.stdout.write(`${C.green}Lanjut!${C.reset}\n`);
+  await animatedDelay(waitTime, label);
 }
 
 export async function clickByText(page, text, tag = 'button', maxWaitMs = 5000) {

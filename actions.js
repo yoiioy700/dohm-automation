@@ -27,7 +27,7 @@ export async function checkFaucets(page) {
 
 export async function executeRandomSwap(page, stepNum, totalSteps) {
   const amount = randomFloat(CONFIG.ranges.swapMin, CONFIG.ranges.swapMax, 5);
-  log.stepBox(stepNum, totalSteps, 'SWAP frBTC -> DΦHM', `Nominal: \x1b[33m${amount} frBTC\x1b[0m`);
+  log.stepBox(stepNum, totalSteps, 'SWAP frBTC ➜ DΦHM', `${amount} frBTC`);
 
   await page.goto(`${CONFIG.appUrl}/app/swap`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
@@ -40,7 +40,7 @@ export async function executeRandomSwap(page, stepNum, totalSteps) {
   });
 
   if (!swapAvailable) {
-    log.stepEnd(false, 'Fitur swap terkunci (menunggu saldo on-chain)');
+    log.stepEnd(false, 'Terkunci (menunggu konfirmasi saldo)');
     return false;
   }
 
@@ -51,7 +51,7 @@ export async function executeRandomSwap(page, stepNum, totalSteps) {
     const clicked = await clickByText(page, 'Swap', 'button');
     if (clicked) {
       await sleep(5000);
-      log.stepEnd(true, `Swap ${amount} frBTC sukses! (+1 Poin)`);
+      log.stepEnd(true, `Swap ${amount} frBTC sukses diproses`);
       return true;
     }
   } catch (err) {
@@ -62,7 +62,7 @@ export async function executeRandomSwap(page, stepNum, totalSteps) {
 
 export async function executeRandomBond(page, stepNum, totalSteps) {
   const amount = randomFloat(CONFIG.ranges.bondMin, CONFIG.ranges.bondMax, 5);
-  log.stepBox(stepNum, totalSteps, 'BOND frBTC (Mint DΦHM)', `Nominal: \x1b[33m${amount} frBTC\x1b[0m`);
+  log.stepBox(stepNum, totalSteps, 'BOND frBTC (Mint DΦHM)', `${amount} frBTC`);
 
   await page.goto(`${CONFIG.appUrl}/app/bond`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
@@ -75,7 +75,7 @@ export async function executeRandomBond(page, stepNum, totalSteps) {
   });
 
   if (!bondAvailable) {
-    log.stepEnd(false, 'Fitur bond terkunci (menunggu saldo on-chain)');
+    log.stepEnd(false, 'Terkunci (menunggu konfirmasi saldo)');
     return false;
   }
 
@@ -86,7 +86,7 @@ export async function executeRandomBond(page, stepNum, totalSteps) {
     const clicked = await clickByText(page, 'Bond', 'button');
     if (clicked) {
       await sleep(5000);
-      log.stepEnd(true, `Bond ${amount} frBTC sukses! (+1 Poin)`);
+      log.stepEnd(true, `Bond ${amount} frBTC sukses diproses`);
       return true;
     }
   } catch (err) {
@@ -97,7 +97,7 @@ export async function executeRandomBond(page, stepNum, totalSteps) {
 
 export async function executeRandomStake(page, stepNum, totalSteps) {
   const amount = randomFloat(CONFIG.ranges.stakeMin, CONFIG.ranges.stakeMax, 3);
-  log.stepBox(stepNum, totalSteps, 'STAKE DΦHM', `Nominal: \x1b[33m${amount} DΦHM\x1b[0m`);
+  log.stepBox(stepNum, totalSteps, 'STAKE DΦHM (Compounding)', `${amount} DΦHM`);
 
   await page.goto(`${CONFIG.appUrl}/app/stake`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
@@ -110,7 +110,7 @@ export async function executeRandomStake(page, stepNum, totalSteps) {
   });
 
   if (!stakeAvailable) {
-    log.stepEnd(false, 'Fitur stake terkunci (menunggu saldo on-chain)');
+    log.stepEnd(false, 'Terkunci (menunggu konfirmasi saldo)');
     return false;
   }
 
@@ -121,7 +121,7 @@ export async function executeRandomStake(page, stepNum, totalSteps) {
     const clicked = await clickByText(page, 'Stake', 'button');
     if (clicked) {
       await sleep(5000);
-      log.stepEnd(true, `Stake ${amount} DΦHM sukses! (+1 Poin)`);
+      log.stepEnd(true, `Stake ${amount} DΦHM sukses diproses`);
       return true;
     }
   } catch (err) {
@@ -132,12 +132,11 @@ export async function executeRandomStake(page, stepNum, totalSteps) {
 
 export async function executeRandomUnstake(page, stepNum, totalSteps) {
   const amount = randomFloat(CONFIG.ranges.unstakeMin, CONFIG.ranges.unstakeMax, 3);
-  log.stepBox(stepNum, totalSteps, 'UNSTAKE sDΦHM', `Nominal: \x1b[33m${amount} sDΦHM\x1b[0m`);
+  log.stepBox(stepNum, totalSteps, 'UNSTAKE sDΦHM', `${amount} sDΦHM`);
 
   await page.goto(`${CONFIG.appUrl}/app/stake`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
 
-  // Click Unstake tab if available
   await clickByText(page, 'Unstake', 'button');
   await sleep(1500);
 
@@ -148,18 +147,18 @@ export async function executeRandomUnstake(page, stepNum, totalSteps) {
     const clicked = await clickByText(page, 'Unstake', 'button');
     if (clicked) {
       await sleep(5000);
-      log.stepEnd(true, `Unstake ${amount} sDΦHM sukses! (+1 Poin)`);
+      log.stepEnd(true, `Unstake ${amount} sDΦHM sukses diproses`);
       return true;
     }
   } catch (err) {
     log.stepEnd(false, err.message);
   }
-  log.stepEnd(false, 'Fitur unstake terkunci (menunggu saldo sDΦHM)');
+  log.stepEnd(false, 'Terkunci (menunggu saldo sDΦHM)');
   return false;
 }
 
 export async function checkLeaderboardAndStreak(page) {
-  log.info('Memeriksa perolehan Poin & Streak...');
+  log.info('Menyinkronkan Poin & Status Streak...');
   await page.goto(`${CONFIG.appUrl}/app/leaderboard`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(4000);
 

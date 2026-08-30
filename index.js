@@ -1,6 +1,24 @@
 import { runDohmAutomation } from './bot.js';
 import { CONFIG } from './config.js';
-import { log, sleep } from './utils.js';
+import { log, sleep, C } from './utils.js';
+
+async function countdownTimer(totalSeconds) {
+  let remaining = totalSeconds;
+  while (remaining > 0) {
+    const hours = Math.floor(remaining / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
+    const seconds = remaining % 60;
+    const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+    process.stdout.write(
+      `\r  ${C.dim}⏰ [AUTO-LOOP]${C.reset} Menunggu siklus berikutnya: ${C.brightYellow}${C.bold}${timeStr}${C.reset} ${C.dim}(Tekan Ctrl+C untuk berhenti)${C.reset} `
+    );
+
+    await sleep(1000);
+    remaining--;
+  }
+  process.stdout.write('\n');
+}
 
 async function main() {
   const args = process.argv.slice(2);
@@ -13,20 +31,16 @@ async function main() {
     process.exit(0);
   }
 
-  log.banner();
-  log.info(`Mode \x1b[32mAuto-Loop Aktif\x1b[0m (Interval: Setiap ${CONFIG.intervalHours} Jam)`);
-
   while (true) {
     try {
       await runDohmAutomation(customTxCount);
     } catch (err) {
-      log.error(`Unhandled cycle error: ${err.message}`);
+      log.error(`Unhandled error dalam siklus: ${err.message}`);
     }
 
-    const waitMs = CONFIG.intervalHours * 60 * 60 * 1000;
-    const nextRun = new Date(Date.now() + waitMs).toLocaleTimeString('id-ID');
-    log.info(`Siklus selesai. Tidur selama ${CONFIG.intervalHours} jam (Siklus berikutnya: \x1b[33m${nextRun}\x1b[0m)...`);
-    await sleep(waitMs);
+    const waitSeconds = CONFIG.intervalHours * 3600;
+    console.log(`\n  ${C.brightCyan}⏳ Siklus selesai.${C.reset} Memulai penghitung waktu tidur ${CONFIG.intervalHours} jam...`);
+    await countdownTimer(waitSeconds);
   }
 }
 
