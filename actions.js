@@ -2,32 +2,32 @@ import { log, sleep, clickByText, randomFloat, setFirstInputValue } from './util
 import { CONFIG } from './config.js';
 
 export async function checkFaucets(page) {
-  log.info('Memeriksa ketersediaan Faucet testnet...');
+  log.faucet('Memeriksa ketersediaan Faucet testnet...');
   await page.goto(`${CONFIG.appUrl}/app/setup`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
 
   // Check if "Get BTC" button exists
   const btcBtn = await clickByText(page, 'Get BTC', 'button', 3000);
   if (btcBtn) {
-    log.info('Klaim "Get BTC" berhasil diklik.');
+    log.faucet('Klaim \x1b[32m"Get BTC"\x1b[0m berhasil terpicu.');
     await sleep(4000);
   } else {
-    log.warn('"Get BTC" belum tersedia / sedang cooldown.');
+    log.warn('Faucet "Get BTC" belum siap / cooldown.');
   }
 
   // Check if "Get frBTC" button exists
   const frbtcBtn = await clickByText(page, 'Get frBTC', 'button', 3000);
   if (frbtcBtn) {
-    log.info('Klaim "Get frBTC" berhasil diklik.');
+    log.faucet('Klaim \x1b[32m"Get frBTC"\x1b[0m berhasil terpicu.');
     await sleep(4000);
   } else {
-    log.warn('"Get frBTC" belum tersedia / sedang cooldown.');
+    log.warn('Faucet "Get frBTC" belum siap / cooldown.');
   }
 }
 
-export async function executeRandomSwap(page) {
+export async function executeRandomSwap(page, stepNum, totalSteps) {
   const amount = randomFloat(CONFIG.ranges.swapMin, CONFIG.ranges.swapMax, 5);
-  log.info(`[SWAP] Mencoba Swap acak sebesar ${amount} frBTC -> DΦHM...`);
+  log.stepBox(stepNum, totalSteps, 'SWAP frBTC -> DΦHM', `Nominal: \x1b[33m${amount} frBTC\x1b[0m`);
 
   await page.goto(`${CONFIG.appUrl}/app/swap`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
@@ -40,7 +40,7 @@ export async function executeRandomSwap(page) {
   });
 
   if (!swapAvailable) {
-    log.warn('[SWAP] Fitur swap saat ini nonaktif / terkunci.');
+    log.stepEnd(false, 'Fitur swap terkunci (menunggu saldo on-chain)');
     return false;
   }
 
@@ -50,20 +50,19 @@ export async function executeRandomSwap(page) {
 
     const clicked = await clickByText(page, 'Swap', 'button');
     if (clicked) {
-      log.info(`[SWAP] Transaksi Swap ${amount} frBTC dikirim! Menunggu konfirmasi...`);
       await sleep(5000);
-      log.success(`[SWAP] Berhasil Swap ${amount} frBTC (+1 Poin harian)!`);
+      log.stepEnd(true, `Swap ${amount} frBTC sukses! (+1 Poin)`);
       return true;
     }
   } catch (err) {
-    log.error(`[SWAP] Gagal: ${err.message}`);
+    log.stepEnd(false, err.message);
   }
   return false;
 }
 
-export async function executeRandomBond(page) {
+export async function executeRandomBond(page, stepNum, totalSteps) {
   const amount = randomFloat(CONFIG.ranges.bondMin, CONFIG.ranges.bondMax, 5);
-  log.info(`[BOND] Mencoba Bond acak sebesar ${amount} frBTC...`);
+  log.stepBox(stepNum, totalSteps, 'BOND frBTC (Mint DΦHM)', `Nominal: \x1b[33m${amount} frBTC\x1b[0m`);
 
   await page.goto(`${CONFIG.appUrl}/app/bond`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
@@ -76,7 +75,7 @@ export async function executeRandomBond(page) {
   });
 
   if (!bondAvailable) {
-    log.warn('[BOND] Fitur bond saat ini nonaktif / terkunci.');
+    log.stepEnd(false, 'Fitur bond terkunci (menunggu saldo on-chain)');
     return false;
   }
 
@@ -86,20 +85,19 @@ export async function executeRandomBond(page) {
 
     const clicked = await clickByText(page, 'Bond', 'button');
     if (clicked) {
-      log.info(`[BOND] Transaksi Bond ${amount} frBTC dikirim! Menunggu konfirmasi...`);
       await sleep(5000);
-      log.success(`[BOND] Berhasil Bond ${amount} frBTC (+1 Poin per transaksi)!`);
+      log.stepEnd(true, `Bond ${amount} frBTC sukses! (+1 Poin)`);
       return true;
     }
   } catch (err) {
-    log.error(`[BOND] Gagal: ${err.message}`);
+    log.stepEnd(false, err.message);
   }
   return false;
 }
 
-export async function executeRandomStake(page) {
+export async function executeRandomStake(page, stepNum, totalSteps) {
   const amount = randomFloat(CONFIG.ranges.stakeMin, CONFIG.ranges.stakeMax, 3);
-  log.info(`[STAKE] Mencoba Stake acak sebesar ${amount} DΦHM...`);
+  log.stepBox(stepNum, totalSteps, 'STAKE DΦHM', `Nominal: \x1b[33m${amount} DΦHM\x1b[0m`);
 
   await page.goto(`${CONFIG.appUrl}/app/stake`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
@@ -112,7 +110,7 @@ export async function executeRandomStake(page) {
   });
 
   if (!stakeAvailable) {
-    log.warn('[STAKE] Fitur stake saat ini nonaktif / terkunci.');
+    log.stepEnd(false, 'Fitur stake terkunci (menunggu saldo on-chain)');
     return false;
   }
 
@@ -122,20 +120,19 @@ export async function executeRandomStake(page) {
 
     const clicked = await clickByText(page, 'Stake', 'button');
     if (clicked) {
-      log.info(`[STAKE] Transaksi Stake ${amount} DΦHM dikirim! Menunggu konfirmasi...`);
       await sleep(5000);
-      log.success(`[STAKE] Berhasil Stake ${amount} DΦHM (+1 Poin per transaksi)!`);
+      log.stepEnd(true, `Stake ${amount} DΦHM sukses! (+1 Poin)`);
       return true;
     }
   } catch (err) {
-    log.error(`[STAKE] Gagal: ${err.message}`);
+    log.stepEnd(false, err.message);
   }
   return false;
 }
 
-export async function executeRandomUnstake(page) {
+export async function executeRandomUnstake(page, stepNum, totalSteps) {
   const amount = randomFloat(CONFIG.ranges.unstakeMin, CONFIG.ranges.unstakeMax, 3);
-  log.info(`[UNSTAKE] Mencoba Unstake acak sebesar ${amount} sDΦHM...`);
+  log.stepBox(stepNum, totalSteps, 'UNSTAKE sDΦHM', `Nominal: \x1b[33m${amount} sDΦHM\x1b[0m`);
 
   await page.goto(`${CONFIG.appUrl}/app/stake`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(3000);
@@ -150,29 +147,29 @@ export async function executeRandomUnstake(page) {
 
     const clicked = await clickByText(page, 'Unstake', 'button');
     if (clicked) {
-      log.info(`[UNSTAKE] Transaksi Unstake ${amount} sDΦHM dikirim!`);
       await sleep(5000);
-      log.success(`[UNSTAKE] Berhasil Unstake ${amount} sDΦHM (+1 Poin per transaksi)!`);
+      log.stepEnd(true, `Unstake ${amount} sDΦHM sukses! (+1 Poin)`);
       return true;
     }
   } catch (err) {
-    log.error(`[UNSTAKE] Gagal: ${err.message}`);
+    log.stepEnd(false, err.message);
   }
+  log.stepEnd(false, 'Fitur unstake terkunci (menunggu saldo sDΦHM)');
   return false;
 }
 
 export async function checkLeaderboardAndStreak(page) {
-  log.info('Memeriksa status Leaderboard & Streak...');
+  log.info('Memeriksa perolehan Poin & Streak...');
   await page.goto(`${CONFIG.appUrl}/app/leaderboard`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(4000);
 
   const data = await page.evaluate(() => {
     const body = document.body.innerText;
+    const ptsMatch = body.match(/(\d+[\d,.]*)\s*(?:pts|points)/i);
     return {
-      hasStreak: body.includes('streak') || body.includes('Streak'),
-      fullText: body.slice(0, 300),
+      points: ptsMatch ? ptsMatch[0] : '0 pts',
     };
   });
 
-  log.info(`Ringkasan: ${data.fullText.replace(/\n+/g, ' ')}`);
+  return data.points;
 }

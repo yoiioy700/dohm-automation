@@ -2,7 +2,7 @@ import { log, sleep, clickByText } from './utils.js';
 import { CONFIG } from './config.js';
 
 export async function connectOrRestoreWallet(page, account) {
-  log.info(`[${account.name}] Memeriksa status wallet...`);
+  log.info(`Menghubungkan ke DOHM testnet...`);
   await page.goto(`${CONFIG.appUrl}/app/link`, { waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
   await sleep(3000);
 
@@ -17,11 +17,11 @@ export async function connectOrRestoreWallet(page, account) {
       const match = document.body.innerText.match(/bcrt1[a-zA-Z0-9]{30,}/);
       return match ? match[0] : 'Connected (Regtest)';
     });
-    log.success(`[${account.name}] Wallet terhubung: ${address}`);
-    return true;
+    log.success(`Wallet aktif: \x1b[32m${address}\x1b[0m`);
+    return { success: true, address };
   }
 
-  log.info(`[${account.name}] Memulihkan wallet menggunakan seed phrase...`);
+  log.info(`Memulihkan wallet dari Seed Phrase...`);
 
   // Click Connect wallet button or Create testnet wallet
   let btnClicked = await clickByText(page, 'Connect wallet', 'button', 3000);
@@ -68,12 +68,18 @@ export async function connectOrRestoreWallet(page, account) {
   // Click Restore button
   const restoreSubmitted = await clickByText(page, 'Restore', 'button', 3000);
   if (restoreSubmitted) {
-    log.info(`[${account.name}] Request restore dikirim. Menunggu konfirmasi...`);
+    log.info(`Menunggu konfirmasi restore...`);
     await sleep(4000);
-    log.success(`[${account.name}] Wallet berhasil dipulihkan!`);
-    return true;
+
+    const address = await page.evaluate(() => {
+      const match = document.body.innerText.match(/bcrt1[a-zA-Z0-9]{30,}/);
+      return match ? match[0] : 'bcrt1q... (Regtest)';
+    });
+
+    log.success(`Wallet berhasil dipulihkan: \x1b[32m${address}\x1b[0m`);
+    return { success: true, address };
   }
 
-  log.error(`[${account.name}] Gagal melakukan Restore wallet.`);
-  return false;
+  log.error(`Gagal melakukan restore wallet.`);
+  return { success: false, address: null };
 }
