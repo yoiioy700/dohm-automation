@@ -58,6 +58,9 @@ export async function runDohmAutomation(customTxCount = null) {
 
       // 1. Restore / Connect Wallet
       const walletRes = await connectOrRestoreWallet(page, account);
+      if (walletRes.address) {
+        account.address = walletRes.address;
+      }
       log.accountCard(accIdx + 1, accounts.length, account.name, walletRes.address);
 
       if (!walletRes.success) {

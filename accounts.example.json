@@ -1,11 +1,13 @@
 [
   {
     "name": "Wallet 1",
+    "address": "bcrt1q...",
     "seedPhrase": "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12",
     "password": "Password123!"
   },
   {
     "name": "Wallet 2",
+    "address": "bcrt1q...",
     "seedPhrase": "your second twelve words recovery phrase goes here in this line",
     "password": "Password123!"
   }

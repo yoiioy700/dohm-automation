@@ -25,12 +25,6 @@ export const C = {
   brightMagenta: '\x1b[95m',
   brightCyan: '\x1b[96m',
   brightWhite: '\x1b[97m',
-
-  // Backgrounds
-  bgDark: '\x1b[40m',
-  bgBlue: '\x1b[44m',
-  bgMagenta: '\x1b[45m',
-  bgCyan: '\x1b[46m',
 };
 
 function getTime() {
@@ -62,13 +56,13 @@ ${C.dim}  ───────────────────────�
   accountsTable: (accounts) => {
     console.log(`\n  ${C.bold}👥 DAFTAR AKUN TERKONFIGURASI (${accounts.length} Akun):${C.reset}`);
     console.log(`  ${C.dim}┌─────┬──────────────────────────┬─────────────────────────────────────────────────┐${C.reset}`);
-    console.log(`  ${C.dim}│${C.reset} ${C.bold}No  ${C.reset}${C.dim}│${C.reset} ${C.bold}Nama Akun                ${C.reset}${C.dim}│${C.reset} ${C.bold}Seed Phrase Preview                             ${C.reset}${C.dim}│${C.reset}`);
+    console.log(`  ${C.dim}│${C.reset} ${C.bold}No  ${C.reset}${C.dim}│${C.reset} ${C.bold}Nama Akun                ${C.reset}${C.dim}│${C.reset} ${C.bold}Wallet Address (Testnet)                          ${C.reset}${C.dim}│${C.reset}`);
     console.log(`  ${C.dim}├─────┼──────────────────────────┼─────────────────────────────────────────────────┤${C.reset}`);
     accounts.forEach((acc, i) => {
       const no = String(i + 1).padEnd(3);
       const name = (acc.name || `Akun ${i + 1}`).padEnd(24).slice(0, 24);
-      const preview = (acc.seedPhrase ? acc.seedPhrase.slice(0, 43) + '...' : 'N/A').padEnd(47);
-      console.log(`  ${C.dim}│${C.reset} ${C.brightYellow}${no}${C.reset} ${C.dim}│${C.reset} ${C.brightCyan}${name}${C.reset} ${C.dim}│${C.reset} ${C.dim}${preview}${C.reset} ${C.dim}│${C.reset}`);
+      const addr = (acc.address || 'Auto-detect saat koneksi').padEnd(47).slice(0, 47);
+      console.log(`  ${C.dim}│${C.reset} ${C.brightYellow}${no}${C.reset} ${C.dim}│${C.reset} ${C.brightCyan}${name}${C.reset} ${C.dim}│${C.reset} ${C.brightGreen}${addr}${C.reset} ${C.dim}│${C.reset}`);
     });
     console.log(`  ${C.dim}└─────┴──────────────────────────┴─────────────────────────────────────────────────┘${C.reset}`);
   },
